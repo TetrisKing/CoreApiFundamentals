@@ -23,21 +23,21 @@ namespace CoreCodeCamp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<CampModel[]>> Get()
+        public async Task<ActionResult<CampModel[]>> Get(bool includeTalks = false)
         {
             try
             {
-                var results = await repository.GetAllCampsAsync();
+                var results = await repository.GetAllCampsAsync(includeTalks);
                 return mapper.Map<CampModel[]>(results);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
         [HttpGet("{moniker}")]
-        public async Task<ActionResult<CampModel>> Get(string moniker)
+        public async Task<ActionResult<CampModel>> Get(string moniker, bool includeTalks = false)
         {
             try
             {
@@ -46,9 +46,26 @@ namespace CoreCodeCamp.Controllers
                     return NotFound();
                 return mapper.Map<CampModel>(results);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Route("searchByDate/{eventDate:datetime}")]
+        [HttpGet]
+        public async Task<IActionResult> SearchByEventDate(DateTime eventDate, bool includeTalks = false)
+        {
+            try
+            {
+                var results = await repository.GetAllCampsByEventDate(eventDate, includeTalks);
+                if (results == null)
+                    return NotFound();
+                return Ok(mapper.Map<CampModel[]>(results));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,ex);
             }
         }
     }
